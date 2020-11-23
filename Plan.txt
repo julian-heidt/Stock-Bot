@@ -1,0 +1,18 @@
+Overall plan:
+    Have a discord bot that simulates a stock market.
+    Must have at least 5 stocks.
+    Players have value when they buy stock (stock value goes up the more people buy of it)
+
+Player outline:
+    A player will have the following attributes:
+        Name
+        Current money
+        Stocks invested
+
+Stock outline:
+    A stock will have the folling attributes:
+        Name
+        Current value
+        Current players invested
+        Divenend value    
+        

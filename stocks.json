@@ -1,0 +1,24 @@
+{
+  "Stocks": [
+    {
+      "name": "This is Hard",
+      "value": 500.0,
+      "playersInvested": []
+    },
+    {
+      "name": "Oh Fuck",
+      "value": 500.0,
+      "playersInvested": []
+    },
+    {
+      "name": "Anime Waifu Corp",
+      "value": 500.0,
+      "playersInvested": []
+    },
+    {
+      "name": "Waffen SS Corp",
+      "value": 500.0,
+      "playersInvested": []
+    }
+  ]
+}
