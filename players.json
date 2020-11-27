@@ -1,5 +1,8 @@
 {
-    "Players": {
-        
-    }
+    "Players": [{
+        "name": "fuck",
+        "playerID": 0,
+        "money": 20.00,
+        "stockInvested": []
+    }]
 }

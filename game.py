@@ -43,7 +43,7 @@ class Player():
 class Stock():
     def __init__(self, name, value):
         self.name = name
-        self.value = int(value)
+        self.value = float(value)
         self.price = value/20
         self.playersInvested = []
                 
@@ -57,8 +57,17 @@ class Stock():
         return float(self.value/self.playersInvested)
     
     def giveWealth(self, diviend):
-        if self.value >= 20.00:
-            Player.money += diviend()
+        if self.value >= 600.00:
+            with open('./players.json', 'r') as readPlayers:
+                playerJSON = json.load(readPlayers)
+                players = playerJSON['Players']
+                for i in range(len(self.playersInvested)):
+                    if players[i]['name'] == self.playersInvested[i]:
+                        players[i]['money'] += diviend
+                json.dumps(playerJSON)
+            with open('./players.json', 'w') as writePlayers:
+                json.dump(playerJSON, writePlayers, indent=2)
+
         return f'You got {diviend()} amount of money!'
 
 
@@ -136,13 +145,13 @@ async def invest(ctx):
                     players[i]['stockInvested'] = player.stockInvested
                     stocks[i]['value'] = investStock.value
                     stocks[i]['playersInvested'] = investStock.playersInvested
-                    json.dumps(players)
-                    json.dumps(stocks)
+                    json.dumps(playerJSON)
+                    json.dumps(stock)
                     
     with open('./players.json', 'w') as writePlayers:
-        json.dump(players, writePlayers, indent=2)
+        json.dump(playerJSON, writePlayers, indent=2)
     with open('./stocks.json') as writeStocks:
-        json.dump(stocks, writeStocks, indent=2)
+        json.dump(stock, writeStocks, indent=2)
                      
 
    
