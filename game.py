@@ -36,7 +36,7 @@ class Player():
             return "You don't have enough money to invest"
         else:
             Stock.name.value += investMoney
-            Player.name.money -= investMoney
+            self.name.money -= investMoney
             Stock.players.append({"name": self.name, "id": self.id})
             return f'You invested ${investMoney} in {Stock.name}'
     
@@ -54,12 +54,13 @@ class Stock():
         return f'{self.name} is price at {self.price} per share.'
     
     def diviend(self):
-        return float(self.value/self.players)
+        return float(self.value/self.playersInvested)
     
     def giveWealth(self, diviend):
         if self.value >= 20.00:
             Player.money += diviend()
         return f'You got {diviend()} amount of money!'
+
 
 @client.event
 async def on_ready():
@@ -183,9 +184,8 @@ async def backgroundTask():
     now = datetime.now()
     time = now.strftime("%H%M")
     stockChangeTimes = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','19','20','21','22','23']
-    for i in stockChangeTimes:
+    for i in range(len(stockChangeTimes)):
         if time == f'{stockChangeTimes[i]}:00' and coolDown == False:
-            print('Ur mom gae')
             coolDown = True
             with open('./stocks.json', 'r') as readStocks:
                 stocks = json.load(readStocks)
