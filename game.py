@@ -1,3 +1,4 @@
+from os import read
 import discord
 from discord import message, channel, reaction, user, emoji
 from discord import client
@@ -58,15 +59,15 @@ class Stock():
     
     def giveWealth(self, diviend):
         if self.value >= 600.00:
-            with open('./players.json', 'r') as readPlayers:
-                playerJSON = json.load(readPlayers)
-                players = playerJSON['Players']
+            with open('./players.json', 'r+') as readPlayers:
+                players = json.load(readPlayers)
                 for i in range(len(self.playersInvested)):
                     if players[i]['name'] == self.playersInvested[i]:
                         players[i]['money'] += diviend
-                json.dumps(playerJSON)
-            with open('./players.json', 'w') as writePlayers:
-                json.dump(playerJSON, writePlayers, indent=2)
+                        readPlayers.seek(i)
+                        json.dump(players, readPlayers, indent=2)
+                        readPlayers.truncate()
+
 
         return f'You got {diviend()} amount of money!'
 
@@ -81,7 +82,7 @@ async def stocks(ctx):
     with open('./stocks.json') as readStocks:
         stocks = json.load(readStocks)
         stockNames = []
-        for i in stocks['Stocks']:
+        for i in stocks:
             stockNames.append(i['name'])
             
         nameStr = nameStr.join(stockNames)
@@ -90,7 +91,7 @@ async def stocks(ctx):
 @client.command()
 async def addPlayer(ctx):
     playerID = ctx.author.id
-    playerName = ctx.author.nick
+    playerName = ctx.author.name
     money = 200.00
     #stockInvested = []
     try:
@@ -122,54 +123,55 @@ async def invest(ctx):
     msg = rawMSG.split(', ')
     stockName = msg[1]
     shares = msg[2]
-    with open('./players.json', 'r') as readPlayers:
-        with open('./stocks.json', 'r') as readStocks:
+    with open('./players.json', 'r+') as readPlayers:
+        with open('./stocks.json', 'r+') as readStocks:
             investor = ctx.author.id
-            stock = json.load(readStocks)
-            playerJSON = json.load(readPlayers)
-            players = playerJSON['Players']
-            stocks = stock['Stocks']
+            players = json.load(readPlayers)
+            stocks = json.load(readStocks)
             for i in range(len(stocks)):
                 if stockName == stocks[i]['name']:
                     investStock = Stock(name=stockName, value=stocks[i]['value'])
             for i in range(len(players)):
                 playerID = players[i]['id']
                 playerMoney = players[i]['money']
+                playerName = players[i]['name']
                 if playerID == investor:
-                    player = Player(name='n/a', playerID=playerID, money=playerMoney)
-                    investStock.value += investStock.price*float(shares)
-                    player.money -= investStock.price*float(shares)
-                    investStock.playersInvested.append(investor)
-                    player.stockInvested.append(investStock.name)
-                    players[i]['money'] = player.money
-                    players[i]['stockInvested'] = player.stockInvested
-                    stocks[i]['value'] = investStock.value
-                    stocks[i]['playersInvested'] = investStock.playersInvested
-                    json.dumps(playerJSON)
-                    json.dumps(stock)
-                    
-    with open('./players.json', 'w') as writePlayers:
-        json.dump(playerJSON, writePlayers, indent=2)
-    with open('./stocks.json') as writeStocks:
-        json.dump(stock, writeStocks, indent=2)
-                     
-
+                    try:
+                        player = Player(name='n/a', playerID=playerID, money=playerMoney)
+                        investStock.value += investStock.price*float(shares)
+                        player.money -= investStock.price*float(shares)
+                        investStock.playersInvested.append(investor)
+                        player.stockInvested.append(investStock.name)
+                        players[i]['money'] = player.money
+                        players[i]['stockInvested'].append(player.stockInvested)
+                        stocks[i]['value'] = investStock.value
+                        stocks[i]['playersInvested'].append(investStock.playersInvested)
+                        readPlayers.seek(i)
+                        readStocks.seek(i)
+                        json.dump(players, readPlayers, indent=2)
+                        json.dump(stocks, readStocks, indent=2)
+                        readPlayers.truncate()
+                        readStocks.truncate()
+                    except: 
+                        await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
+                    else:
+                        await ctx.send(f'{playerName} has invested {shares} share in {investStock.name}')
    
 def stockSetup(name, value):
     stockSetupDict = {
            "name": str(name),
            "value": float(value),
+           "price": float(value/20),
            "playersInvested": []
        }
 
-    with open('./stocks.json', 'r') as readStocks:
-        stocks = json.load(readStocks)
-        Stocks = stocks["Stocks"]
+    with open('./stocks.json', 'r+') as readStocks:
+        Stocks = json.load(readStocks)
         Stocks.append(stockSetupDict)
-        json.dumps(stocks)
-        
+        json.dumps(Stocks)
     with open('./stocks.json', 'w') as writeStocks:
-        json.dump(stocks, writeStocks, indent=2)
+        json.dump(Stocks, writeStocks, indent=2)
+        
         
 def playerSetup(name, playerID, money):
     playerSetupDict = {
@@ -178,10 +180,9 @@ def playerSetup(name, playerID, money):
            "money": float(money),
            "stockInvested": []
        }
-    with open('./players.json', 'r') as readPlayers:
+    with open('./players.json', 'r+') as readPlayers:
         players = json.load(readPlayers)
-        Players = players["Players"]
-        Players.append(playerSetupDict)
+        players.append(playerSetupDict)
         json.dumps(players)
         
     with open('./players.json', 'w') as writePlayers:
@@ -196,18 +197,16 @@ async def backgroundTask():
     for i in range(len(stockChangeTimes)):
         if time == f'{stockChangeTimes[i]}:00' and coolDown == False:
             coolDown = True
-            with open('./stocks.json', 'r') as readStocks:
+            with open('./stocks.json', 'r+') as readStocks:
                 stocks = json.load(readStocks)
-                for i in range(len(stocks["Stocks"])):
-                    investors = stocks["Stocks"][i]["playersInvested"]
-                    stockValue = stocks["Stocks"][i]["value"]
+                for i in range(len(stocks)):
+                    stockValue = stocks[i]["value"]
                     randNum = random.randint(a=-15, b=15)
                     stockValue += randNum
-                    stocks["Stocks"][i]["value"] = stockValue
-                    json.dumps(stockValue)
-            
-            with open('./stocks.json', 'w') as writeStocks:
-                json.dump(stocks, writeStocks, indent=2)
+                    stocks[i]["value"] = stockValue
+                    readStocks.seek(i)
+                    json.dump(stocks, readStocks, indent=2)
+                    readStocks.truncate()
                     
         elif time != f'{stockChangeTimes[i]}:00'  and coolDown == True:
             coolDown = False

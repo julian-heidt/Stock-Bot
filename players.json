@@ -1,8 +1,20 @@
-{
-    "Players": [{
-        "name": "fuck",
-        "playerID": 0,
-        "money": 20.00,
-        "stockInvested": []
-    }]
-}
+[
+  {
+    "name": "Julio",
+    "id": 454730426586497025,
+    "money": -7.5,
+    "stockInvested": []
+  },
+  {
+    "name": "Kintoki",
+    "id": 236639743985713152,
+    "money": 200.0,
+    "stockInvested": []
+  },
+  {
+    "name": "m\u0335\u030e\u034cy\u0335\u033e\u0360c\u0338\u0310\u0352a\u0335\u034b\u0310r\u0337\u0301\u030c \u0337\u0315\u0311",
+    "id": 336707664006479883,
+    "money": 200.0,
+    "stockInvested": []
+  }
+]
