@@ -1,7 +1,6 @@
 from os import read
 import discord
 from discord import message, channel, reaction, user, emoji
-from discord import client
 from discord.ext import commands, tasks
 from datetime import datetime
 import random
@@ -129,7 +128,9 @@ async def invest(ctx):
             players = json.load(readPlayers)
             stocks = json.load(readStocks)
             for i in range(len(stocks)):
+                global stockNum
                 if stockName == stocks[i]['name']:
+                    stockNum = i
                     investStock = Stock(name=stockName, value=stocks[i]['value'])
             for i in range(len(players)):
                 playerID = players[i]['id']
@@ -140,12 +141,12 @@ async def invest(ctx):
                         player = Player(name='n/a', playerID=playerID, money=playerMoney)
                         investStock.value += investStock.price*float(shares)
                         player.money -= investStock.price*float(shares)
-                        investStock.playersInvested.append(investor)
-                        player.stockInvested.append(investStock.name)
+                        investStock.playersInvested.append(str(investor))
+                        player.stockInvested.append(str(investStock.name))
                         players[i]['money'] = player.money
-                        players[i]['stockInvested'].append(player.stockInvested)
-                        stocks[i]['value'] = investStock.value
-                        stocks[i]['playersInvested'].append(investStock.playersInvested)
+                        players[i]['stockInvested'].append(str(player.stockInvested[i]))
+                        stocks[stockNum]['value'] = investStock.value
+                        stocks[stockNum]['playersInvested'].append(str(investStock.playersInvested[i]))
                         readPlayers.seek(i)
                         readStocks.seek(i)
                         json.dump(players, readPlayers, indent=2)
