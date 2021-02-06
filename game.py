@@ -6,6 +6,8 @@ from datetime import datetime
 import random
 import json
 
+from discord.ext.commands.core import check
+
 coolDown = False
 
 #playersJSON = open('./players.json')
@@ -117,11 +119,12 @@ async def addStock(ctx):
   
 @client.command()
 async def invest(ctx):
-    global investStock
+    global investStock, noFunds
     rawMSG = ctx.message.content
     msg = rawMSG.split(', ')
     stockName = msg[1]
     shares = msg[2]
+    noFunds = False
     with open('./players.json', 'r+') as readPlayers:
         with open('./stocks.json', 'r+') as readStocks:
             investor = ctx.author.id
@@ -133,28 +136,43 @@ async def invest(ctx):
                     stockNum = i
                     investStock = Stock(name=stockName, value=stocks[i]['value'])
             for i in range(len(players)):
+                playerNum = i
                 playerID = players[i]['id']
                 playerMoney = players[i]['money']
                 playerName = players[i]['name']
                 if playerID == investor:
                     try:
                         player = Player(name='n/a', playerID=playerID, money=playerMoney)
-                        investStock.value += investStock.price*float(shares)
-                        player.money -= investStock.price*float(shares)
-                        investStock.playersInvested.append(str(investor))
-                        player.stockInvested.append(str(investStock.name))
-                        players[i]['money'] = player.money
-                        players[i]['stockInvested'].append(str(player.stockInvested[i]))
-                        stocks[stockNum]['value'] = investStock.value
-                        stocks[stockNum]['playersInvested'].append(str(investStock.playersInvested[i]))
-                        readPlayers.seek(i)
-                        readStocks.seek(i)
-                        json.dump(players, readPlayers, indent=2)
-                        json.dump(stocks, readStocks, indent=2)
-                        readPlayers.truncate()
-                        readStocks.truncate()
-                    except: 
-                        await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
+                        if player.money <= investStock.price:
+                            noFunds = True
+                        else:
+                            investStock.value += investStock.price*float(shares)
+                            player.money -= investStock.price*float(shares)
+                            investStock.playersInvested.append(str(investor))
+                            for stocks in player.stockInvested:
+                                if investStock.name == player.stockInvested[stocks]:
+                                    pass
+                                else:
+                                    player.stockInvested.append(str(investStock.name))
+                                    players[playerNum]['stockInvested'].append(str(player.stockInvested[i]))
+                            players[playerNum]['money'] = player.money
+                            for players in investStock.playersInvested:
+                                if player.name == investStock.playersInvested[players]:
+                                    pass
+                                else:
+                                    stocks[stockNum]['value'] = investStock.value
+                                    stocks[stockNum]['playersInvested'].append(str(investStock.playersInvested[i]))
+                            readPlayers.seek(i)
+                            readStocks.seek(i)
+                            json.dump(players, readPlayers, indent=2)
+                            json.dump(stocks, readStocks, indent=2)
+                            readPlayers.truncate()
+                            readStocks.truncate()
+                    except:
+                        if noFunds == True:
+                            await ctx.send("You don't have enough money to invest in this stock.")
+                        else:
+                            await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
                     else:
                         await ctx.send(f'{playerName} has invested {shares} share in {investStock.name}')
    
