@@ -116,7 +116,7 @@ async def addStock(ctx):
         await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
     else:
         await ctx.send(f'Created "{stockName}" stock.')
-  
+
 @client.command()
 async def invest(ctx):
     global investStock, noFunds
@@ -142,39 +142,40 @@ async def invest(ctx):
                 playerName = players[i]['name']
                 if playerID == investor:
                     try:
-                        player = Player(name='n/a', playerID=playerID, money=playerMoney)
+                        player = Player(name=playerName, playerID=playerID, money=playerMoney)
+                        print(investStock.price)
                         if player.money <= investStock.price:
-                            noFunds = True
-                        else:
+                            await ctx.send("You don't have enough money to invest in this stock.")
+                        elif player.money >= investStock.price:
                             investStock.value += investStock.price*float(shares)
                             player.money -= investStock.price*float(shares)
-                            investStock.playersInvested.append(str(investor))
-                            for stocks in player.stockInvested:
-                                if investStock.name == player.stockInvested[stocks]:
+                            for players in investStock.playersInvested:
+                                if playerID == investStock.playersInvested[players]:
+                                    pass
+                                else:
+                                    investStock.playersInvested.append(str(investor))
+                                    stocks[stockNum]['playersInvested'].append(str(investStock.playersInvested[i]))
+                                    stocks[stockNum]['value'] = investStock.value
+                            for stocks in players[playerNum]:
+                                if investStock.name == players[playerNum]['stockInvested']:
                                     pass
                                 else:
                                     player.stockInvested.append(str(investStock.name))
                                     players[playerNum]['stockInvested'].append(str(player.stockInvested[i]))
-                            players[playerNum]['money'] = player.money
-                            for players in investStock.playersInvested:
-                                if player.name == investStock.playersInvested[players]:
-                                    pass
-                                else:
-                                    stocks[stockNum]['value'] = investStock.value
-                                    stocks[stockNum]['playersInvested'].append(str(investStock.playersInvested[i]))
+                                    players[playerNum]['money'] = player.money 
                             readPlayers.seek(i)
                             readStocks.seek(i)
                             json.dump(players, readPlayers, indent=2)
                             json.dump(stocks, readStocks, indent=2)
                             readPlayers.truncate()
                             readStocks.truncate()
-                    except:
-                        if noFunds == True:
-                            await ctx.send("You don't have enough money to invest in this stock.")
                         else:
-                            await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
+                            pass
+                    except:
+                        await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
                     else:
-                        await ctx.send(f'{playerName} has invested {shares} share in {investStock.name}')
+                        if player.money >= investStock.price:
+                            await ctx.send(f'{playerName} has invested {shares} share in {investStock.name}')
    
 def stockSetup(name, value):
     stockSetupDict = {
