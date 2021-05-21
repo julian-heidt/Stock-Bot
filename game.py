@@ -10,7 +10,7 @@ from discord.ext.commands.core import check
 
 coolDown = False
 
-#playersJSON = open('./players.json')
+#playersJSON = open('./Stock-Bot/players.json')
 
 #littleGremlinBoys = json.load(playersJSON)
 #To access things in a json file, it goes, the overall catagorey, then it's palce in the list, then the little object
@@ -60,7 +60,7 @@ class Stock():
     
     def giveWealth(self, diviend):
         if self.value >= 600.00:
-            with open('./players.json', 'r+') as readPlayers:
+            with open('./Stock-Bot/players.json,' 'r+') as readPlayers:
                 players = json.load(readPlayers)
                 for i in range(len(self.playersInvested)):
                     if players[i]['name'] == self.playersInvested[i]:
@@ -80,7 +80,7 @@ async def on_ready():
 @client.command()
 async def stocks(ctx):
     nameStr = ", "
-    with open('./stocks.json') as readStocks:
+    with open('./Stock-Bot/stocks.json') as readStocks:
         stocks = json.load(readStocks)
         stockNames = []
         for i in stocks:
@@ -125,8 +125,8 @@ async def invest(ctx):
     stockName = msg[1]
     shares = msg[2]
     noFunds = False
-    with open('./players.json', 'r+') as readPlayers:
-        with open('./stocks.json', 'r+') as readStocks:
+    with open('./Stock-Bot/players.json', 'r+') as readPlayers:
+        with open('./Stock-Bot/stocks.json', 'r+') as readStocks:
             investor = ctx.author.id
             players = json.load(readPlayers)
             stocks = json.load(readStocks)
@@ -151,7 +151,7 @@ async def invest(ctx):
                             player.money -= investStock.price*float(shares)
                             for players in investStock.playersInvested:
                                 if playerID == investStock.playersInvested[players]:
-                                    pass
+                                    break
                                 else:
                                     investStock.playersInvested.append(str(investor))
                                     stocks[stockNum]['playersInvested'].append(str(investStock.playersInvested[i]))
@@ -185,11 +185,11 @@ def stockSetup(name, value):
            "playersInvested": []
        }
 
-    with open('./stocks.json', 'r+') as readStocks:
+    with open('./Stock-Bot/stocks.json', 'r+') as readStocks:
         Stocks = json.load(readStocks)
         Stocks.append(stockSetupDict)
         json.dumps(Stocks)
-    with open('./stocks.json', 'w') as writeStocks:
+    with open('./Stock-Bot/stocks.json', 'w') as writeStocks:
         json.dump(Stocks, writeStocks, indent=2)
         
         
@@ -200,12 +200,12 @@ def playerSetup(name, playerID, money):
            "money": float(money),
            "stockInvested": []
        }
-    with open('./players.json', 'r+') as readPlayers:
+    with open('./Stock-Bot/players.json', 'r+') as readPlayers:
         players = json.load(readPlayers)
         players.append(playerSetupDict)
         json.dumps(players)
         
-    with open('./players.json', 'w') as writePlayers:
+    with open('./Stock-Bot/players.json', 'w') as writePlayers:
         json.dump(players, writePlayers, indent=2)
 
 @tasks.loop()
@@ -217,7 +217,7 @@ async def backgroundTask():
     for i in range(len(stockChangeTimes)):
         if time == f'{stockChangeTimes[i]}:00' and coolDown == False:
             coolDown = True
-            with open('./stocks.json', 'r+') as readStocks:
+            with open('./Stock-Bot/stocks.json', 'r+') as readStocks:
                 stocks = json.load(readStocks)
                 for i in range(len(stocks)):
                     stockValue = stocks[i]["value"]
