@@ -6,8 +6,6 @@ from discord.ext import commands, tasks
 from pymongo import MongoClient
 from datetime import datetime
 
-from pymongo.message import query
-
 coolDown = False
 mongo_uri = "mongodb+srv://admin:Donavan2005@cluster0.b9tb4.mongodb.net/stockbot_db?retryWrites=true&w=majority"
 client = commands.Bot(command_prefix='&')
