@@ -1,212 +1,61 @@
-from os import read
 import discord
-from discord import message, channel, reaction, user, emoji
-from discord.ext import commands, tasks
-from datetime import datetime
 import random
 import json
-
-from discord.ext.commands.core import check
+from discord.ext import commands, tasks
+from pymongo import MongoClient
+from datetime import datetime
 
 coolDown = False
-
-#playersJSON = open('./Stock-Bot/players.json')
-
-#littleGremlinBoys = json.load(playersJSON)
-#To access things in a json file, it goes, the overall catagorey, then it's palce in the list, then the little object
-#Ex. stocks['Stocks'][0]['Anime Waifu Corp']
-
+mongo_uri = "mongodb+srv://admin:Donavan2005@cluster0.b9tb4.mongodb.net/stockbot_db?retryWrites=true&w=majority"
 client = commands.Bot(command_prefix='&')
-
-class Player():
-    def __init__(self, name, playerID, money):
-        self.name = name
-        self.id = playerID
-        self.money = float(money)
-        self.stockInvested = []
-    
-    def checkMoney(self, money):
-        return f'You have ${self.money} in your account.'
-    
-    def checkStocks(self, stocks):
-        stockInvested = ", "
-        stockInvested = stockInvested.join(stocks)
-        return f'You have invested in {stockInvested}.'
-
-    def invest(self, Stock, investMoney):
-        if self.money < 1:
-            return "You don't have enough money to invest"
-        else:
-            Stock.name.value += investMoney
-            self.name.money -= investMoney
-            Stock.players.append({"name": self.name, "id": self.id})
-            return f'You invested ${investMoney} in {Stock.name}'
-    
-class Stock():
-    def __init__(self, name, value):
-        self.name = name
-        self.value = float(value)
-        self.price = value/20
-        self.playersInvested = []
-                
-    def checkValue(self, value, name):
-        return f'{name} is worth ${self.value}.'
-    
-    def checkPrice(self):
-        return f'{self.name} is price at {self.price} per share.'
-    
-    def diviend(self):
-        return float(self.value/self.playersInvested)
-    
-    def giveWealth(self, diviend):
-        if self.value >= 600.00:
-            with open('./Stock-Bot/players.json,' 'r+') as readPlayers:
-                players = json.load(readPlayers)
-                for i in range(len(self.playersInvested)):
-                    if players[i]['name'] == self.playersInvested[i]:
-                        players[i]['money'] += diviend
-                        readPlayers.seek(i)
-                        json.dump(players, readPlayers, indent=2)
-                        readPlayers.truncate()
-
-
-        return f'You got {diviend()} amount of money!'
-
+cluster = MongoClient(mongo_uri)
+db = cluster["stockbot_db"]
+collection = db["users"]
+collection1 = db["stocks"]
 
 @client.event
 async def on_ready():
     print("Bot is ready!")
 
 @client.command()
-async def stocks(ctx):
-    nameStr = ", "
-    with open('./Stock-Bot/stocks.json') as readStocks:
-        stocks = json.load(readStocks)
-        stockNames = []
-        for i in stocks:
-            stockNames.append(i['name'])
-            
-        nameStr = nameStr.join(stockNames)
-        await ctx.send(f'These are the stocks: {nameStr}')
+async def liststocks(ctx):
+    try:
+        print("wip")
+    except:
+        await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
         
 @client.command()
 async def addPlayer(ctx):
-    playerID = ctx.author.id
-    playerName = ctx.author.name
-    money = 200.00
-    #stockInvested = []
+    post = {"_id": ctx.author.id, "name": ctx.author.name, "money": 200.00, "stocks owned": 0}
     try:
-        playerSetup(name=playerName, playerID=playerID, money=money)
+        collection.insert_one(post)
+        await ctx.send(f'Added <@{ctx.author.id}> to the game!')
     except:
-        await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
-    else:
-        await ctx.send(f'Added {playerName} to the game!')
-            
-    
+        await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
+
 @client.command()
-async def addStock(ctx):
-    msg = ctx.message.content.split(', ')
-    #msg.remove('&addStock ')
-    stockName = msg[1]
-    stockValue = float(msg[2])
+async def addStock(ctx, args):
+    msg = ctx.message.content.split(',')
+    stockName = "temp"
+    stockValue = float(msg[1])
+    post = {"stock": stockName, "stock value": stockValue, "players invested": 0}
     try:
-        stockSetup(name=stockName, value=stockValue)
-        #print(stockSetup(name=name, value=value))
-    except:
-        await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
-    else:
+        collection1.insert_one(post)
         await ctx.send(f'Created "{stockName}" stock.')
+    except:
+        await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
+@client.command()   
+async def setMoney(ctx):
+    try:
+        msg = ctx.message.content.split('y ')
+        collection.find_one_and_update({"_id": ctx.author.id}, {"_id": ctx.author.id, "Money": int(msg[1])})
+        await ctx.send(f'Your money has been set to {msg[1]}!')
+    except:
+        await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 
 @client.command()
 async def invest(ctx):
-    global investStock, noFunds
-    rawMSG = ctx.message.content
-    msg = rawMSG.split(', ')
-    stockName = msg[1]
-    shares = msg[2]
-    noFunds = False
-    with open('./Stock-Bot/players.json', 'r+') as readPlayers:
-        with open('./Stock-Bot/stocks.json', 'r+') as readStocks:
-            investor = ctx.author.id
-            players = json.load(readPlayers)
-            stocks = json.load(readStocks)
-            for i in range(len(stocks)):
-                global stockNum
-                if stockName == stocks[i]['name']:
-                    stockNum = i
-                    investStock = Stock(name=stockName, value=stocks[i]['value'])
-            for i in range(len(players)):
-                playerNum = i
-                playerID = players[i]['id']
-                playerMoney = players[i]['money']
-                playerName = players[i]['name']
-                if playerID == investor:
-                    try:
-                        player = Player(name=playerName, playerID=playerID, money=playerMoney)
-                        print(investStock.price)
-                        if player.money <= investStock.price:
-                            await ctx.send("You don't have enough money to invest in this stock.")
-                        elif player.money >= investStock.price:
-                            investStock.value += investStock.price*float(shares)
-                            player.money -= investStock.price*float(shares)
-                            for players in investStock.playersInvested:
-                                if playerID == investStock.playersInvested[players]:
-                                    break
-                                else:
-                                    investStock.playersInvested.append(str(investor))
-                                    stocks[stockNum]['playersInvested'].append(str(investStock.playersInvested[i]))
-                                    stocks[stockNum]['value'] = investStock.value
-                            for stocks in players[playerNum]:
-                                if investStock.name == players[playerNum]['stockInvested']:
-                                    pass
-                                else:
-                                    player.stockInvested.append(str(investStock.name))
-                                    players[playerNum]['stockInvested'].append(str(player.stockInvested[i]))
-                                    players[playerNum]['money'] = player.money 
-                            readPlayers.seek(i)
-                            readStocks.seek(i)
-                            json.dump(players, readPlayers, indent=2)
-                            json.dump(stocks, readStocks, indent=2)
-                            readPlayers.truncate()
-                            readStocks.truncate()
-                        else:
-                            pass
-                    except:
-                        await ctx.send('There was and error processing your request. If the problem persists please contact Julian the creator of this bot')
-                    else:
-                        if player.money >= investStock.price:
-                            await ctx.send(f'{playerName} has invested {shares} share in {investStock.name}')
-   
-def stockSetup(name, value):
-    stockSetupDict = {
-           "name": str(name),
-           "value": float(value),
-           "price": float(value/20),
-           "playersInvested": []
-       }
-
-    with open('./Stock-Bot/stocks.json', 'r+') as readStocks:
-        Stocks = json.load(readStocks)
-        Stocks.append(stockSetupDict)
-        json.dumps(Stocks)
-    with open('./Stock-Bot/stocks.json', 'w') as writeStocks:
-        json.dump(Stocks, writeStocks, indent=2)
-        
-        
-def playerSetup(name, playerID, money):
-    playerSetupDict = {
-           "name": str(name),
-           "id": int(playerID),
-           "money": float(money),
-           "stockInvested": []
-       }
-    with open('./Stock-Bot/players.json', 'r+') as readPlayers:
-        players = json.load(readPlayers)
-        players.append(playerSetupDict)
-        json.dumps(players)
-        
-    with open('./Stock-Bot/players.json', 'w') as writePlayers:
-        json.dump(players, writePlayers, indent=2)
+    print("WIP")
 
 @tasks.loop()
 async def backgroundTask():
@@ -217,7 +66,7 @@ async def backgroundTask():
     for i in range(len(stockChangeTimes)):
         if time == f'{stockChangeTimes[i]}:00' and coolDown == False:
             coolDown = True
-            with open('./Stock-Bot/stocks.json', 'r+') as readStocks:
+            with open('./stocks.json', 'r+') as readStocks:
                 stocks = json.load(readStocks)
                 for i in range(len(stocks)):
                     stockValue = stocks[i]["value"]
@@ -231,4 +80,6 @@ async def backgroundTask():
         elif time != f'{stockChangeTimes[i]}:00'  and coolDown == True:
             coolDown = False
 
-client.run('Nzc5ODg2NjYzMjE1MjE4NzIx.X7nEDg.EMwdlXZp43B_xR7q7plR5C3r0Uc')
+### STOCK BOT TOKEN: Nzc5ODg2NjYzMjE1MjE4NzIx.X7nEDg.EMwdlXZp43B_xR7q7plR5C3r0Uc ###
+
+client.run('token')
