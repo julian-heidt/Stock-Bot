@@ -82,7 +82,7 @@ async def invest(ctx, *, arg):
             }}}, upsert = True)
             collection1.update_one(stockquery, {"$push": {"players invested": {
                 user.display_name: 1
-            }}})
+            }}}, upsert = True)
             await ctx.send(f"You have bought {arg}!")
     except Exception as Argument: 
         logging.exception("bruh this shit aint workin")
