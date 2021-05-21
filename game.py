@@ -1,9 +1,12 @@
 import discord
 import random
 import json
+import logging
 from discord.ext import commands, tasks
 from pymongo import MongoClient
 from datetime import datetime
+
+from pymongo.message import query
 
 coolDown = False
 mongo_uri = "mongodb+srv://admin:Donavan2005@cluster0.b9tb4.mongodb.net/stockbot_db?retryWrites=true&w=majority"
@@ -26,12 +29,17 @@ async def liststocks(ctx):
         
 @client.command()
 async def addPlayer(ctx):
-    user = client.fetch_user(ctx.author.id)
-    post = {"_id": ctx.author.id, "name": user.display_name, "money": 200.00, "stocks owned": {}}
+    post = {"_id": ctx.author.id, "name": f"{ctx.author.name}", "money": 200.00, "stocks owned": []}
+    query = {"_id": ctx.author.id}
+    find = collection.find_one(query)
     try:
-        collection.insert_one(post)
-        await ctx.send(f'Added <@{ctx.author.id}> to the game!')
-    except:
+        if find is None:
+            collection.insert_one(post)
+            await ctx.send(f'Added <@{ctx.author.id}> to the game!')
+        elif find is not None:
+            await ctx.send("You are already in the game, you cannot re-add yourself")
+    except Exception as Argument: 
+        logging.exception("bruh this shit aint workin")
         await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 
 @client.command()
@@ -39,32 +47,47 @@ async def addStock(ctx, *, arg):
     msg = arg.split(',')
     stockName = f"{msg[0]}"
     stockValue = float(msg[1])
-    post = {"_id": stockName, "stock value": stockValue, "players invested": {}}
+    post = {"_id": stockName, "stock value": stockValue, "players invested": []}
+    query = {"_id": stockName}
+    find = collection1.find_one(query)
     try:
-        collection1.insert_one(post)
-        await ctx.send(f'Created "{stockName}" stock.')
-    except:
+        if find is None:
+            collection1.insert_one(post)
+            await ctx.send(f'Created "{stockName}" stock.')
+        if find is not None:
+            await ctx.send('There is already a stock by that name, try a different name.')
+    except Exception as Argument: 
+        logging.exception("bruh this shit aint workin")
         await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
+
 @client.command()   
 async def setMoney(ctx, arg):
     try:
-        collection.find_one_and_update({"_id": ctx.author.id}, {"_id": ctx.author.id, "money": int(arg)})
+        collection.find_one_and_update({"_id": ctx.author.id}, {"_id": ctx.author.id, "money": float(arg)})
         await ctx.send(f'Your money has been set to {arg}!')
-    except:
+    except Exception as Argument: 
+        logging.exception("bruh this shit aint workin")
         await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 
 @client.command()
-async def invest(ctx, arg):
+async def invest(ctx, *, arg):
     try:
-        query = {"_id": arg}
-        stockquery = collection.find_one(query)
+        user = await client.fetch_user(ctx.author.id)
+        query = {"_id": f"{arg}"}
+        stockquery = collection1.find_one(query)
         if stockquery is None:
             await ctx.send("That stock does not exist, maybe you got the name wrong.")
         elif stockquery is not None:
-            moneyquery = {"_id": ctx.author.id}
-
-
-    except:
+            stocksownedquery = {"_id": ctx.author.id}
+            collection.update_one(stocksownedquery, {"$push": {"stocks owned": {
+                arg: 1
+            }}}, upsert = True)
+            collection1.update_one(stockquery, {"$push": {"players invested": {
+                user.display_name: 1
+            }}})
+            await ctx.send(f"You have bought {arg}!")
+    except Exception as Argument: 
+        logging.exception("bruh this shit aint workin")
         await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 
 @tasks.loop()
@@ -91,5 +114,5 @@ async def backgroundTask():
             coolDown = False
 
 ### STOCK BOT TOKEN: Nzc5ODg2NjYzMjE1MjE4NzIx.X7nEDg.EMwdlXZp43B_xR7q7plR5C3r0Uc ###
-
-client.run('Nzc5ODg2NjYzMjE1MjE4NzIx.X7nEDg.EMwdlXZp43B_xR7q7plR5C3r0Uc')
+### Cheater.moe TOKEN: ODMzOTIwNjY2MjYwMjA5NzA2.YH5XJA.I7c2V8oXWwCNvqINOfZxR8ayB8w ###
+client.run('ODMzOTIwNjY2MjYwMjA5NzA2.YH5XJA.I7c2V8oXWwCNvqINOfZxR8ayB8w')
