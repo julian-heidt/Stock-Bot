@@ -26,47 +26,46 @@ async def liststocks(ctx):
         
 @client.command()
 async def addPlayer(ctx):
-    user = await client.fetch_user(ctx.author.id)
-    post = {"_id": ctx.author.id, "name": user.display_name, "money": 200.00, "stocksowned": 0}
-    query = {"_id": ctx.author.id}
-    querygay = collection.find_one(query)
+    user = client.fetch_user(ctx.author.id)
+    post = {"_id": ctx.author.id, "name": user.display_name, "money": 200.00, "stocks owned": {}}
     try:
-        if querygay is None:
-            collection.insert_one(post)
-            await ctx.send(f'Added <@{ctx.author.id}> to the game!')
-        if querygay is not None:
-            await ctx.send("You are already in the Database!")
+        collection.insert_one(post)
+        await ctx.send(f'Added <@{ctx.author.id}> to the game!')
     except:
         await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 
 @client.command()
-async def addStock(ctx):
-    msg = ctx.message.content.split(',')
-    stockName = f""
-    stockValue = float(msg[:1])
-    post = {"stock": stockName, "stock value": stockValue, "players invested": 0}
+async def addStock(ctx, *, arg):
+    msg = arg.split(',')
+    stockName = f"{msg[0]}"
+    stockValue = float(msg[1])
+    post = {"_id": stockName, "stock value": stockValue, "players invested": {}}
     try:
         collection1.insert_one(post)
         await ctx.send(f'Created "{stockName}" stock.')
     except:
         await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 @client.command()   
-async def setMoney(ctx):
-    query = {"_id": ctx.author.id}
-    querygay = collection.find_one(query)
-    msg = ctx.message.content.split('y ')
+async def setMoney(ctx, arg):
     try:
-        if querygay is None:
-            ctx.send('You cannot give yourself money because you are not in the Database, do &addPlayer to be in the Database.')
-        if querygay is not None:
-            collection.find_one_and_update(query, {'$set': {"money": float(msg[1])}})
-            await ctx.send(f'Your money has been set to {msg[1]}!')
+        collection.find_one_and_update({"_id": ctx.author.id}, {"_id": ctx.author.id, "money": int(arg)})
+        await ctx.send(f'Your money has been set to {arg}!')
     except:
         await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 
 @client.command()
-async def invest(ctx):
-    print("WIP")
+async def invest(ctx, arg):
+    try:
+        query = {"_id": arg}
+        stockquery = collection.find_one(query)
+        if stockquery is None:
+            await ctx.send("That stock does not exist, maybe you got the name wrong.")
+        elif stockquery is not None:
+            moneyquery = {"_id": ctx.author.id}
+
+
+    except:
+        await ctx.send('There was an error processing your request. If the problem persists please contact Don the fixer of this gay bot')
 
 @tasks.loop()
 async def backgroundTask():
