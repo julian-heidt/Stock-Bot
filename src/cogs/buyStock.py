@@ -9,12 +9,12 @@ class buyStockCog(commands.Cog):
     @commands.command('buyStock')
     async def buyStock(self, ctx, arg1, arg2):
         idInt = int(ctx.author.id)
-        stockValidation = validateStock(str(arg1))
-        playerValidation = validatePlayer(idInt)
+        isStockValid = validateStock(str(arg1))
+        isPlayerValid = validatePlayer(idInt)
 
-        if stockValidation == False and playerValidation == True: await ctx.send('Please enter the correct stock name!')
-        elif stockValidation == True and playerValidation == True: await investMoney(ctx, arg1, arg2)
-        elif stockValidation == True and playerValidation == False: await ctx.send("Please register yourself using &addPlayer!")
+        if isStockValid == False and isPlayerValid == True: await ctx.send('Please enter the correct stock name!')
+        elif isStockValid == True and isPlayerValid == True: await investMoney(ctx, stockName=arg1, amount=arg2)
+        elif isStockValid == True and isPlayerValid == False: await ctx.send("Please register yourself using &addPlayer!")
 
 def setup(client):
     client.add_cog(buyStockCog(client))

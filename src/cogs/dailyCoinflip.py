@@ -9,10 +9,10 @@ class dailyCoinflipCog(commands.Cog):
     @commands.command("dailyCoinflip")
     async def dailyCoinflip(self, ctx):
         idInt = int(ctx.author.id)
-        playerValidation = validatePlayer(idInt)
+        isPlayerValid = validatePlayer(idInt)
 
-        if playerValidation == False: await ctx.send("Please register using &addPlayer!")
-        elif playerValidation == True: await coinflip(ctx)
+        if isPlayerValid == False: await ctx.send("Please register using &addPlayer!")
+        elif isPlayerValid == True: await coinflip(ctx)
 
 def setup(client):
     client.add_cog(dailyCoinflipCog(client))

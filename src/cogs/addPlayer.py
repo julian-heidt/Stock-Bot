@@ -10,10 +10,11 @@ class addPlayerCog(commands.Cog):
     async def addPlayer(self, ctx):
         nameString = str(ctx.author.name)
         idInt = int(ctx.author.id)
+        isPlayerValid = validatePlayer(idInt)
 
-        if validatePlayer(idInt) is True:
+        if isPlayerValid == True:
             await ctx.send("Sorry, but you are already in the Database.")
-        elif validatePlayer(idInt) is False:
+        elif isPlayerValid == False:
             await ctx.send(playerSetup(nameString, id, 100))
 
 def setup(client):

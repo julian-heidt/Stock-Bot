@@ -42,7 +42,7 @@ async def determineCoinflipWinner(ctx, outcome1, outcome2):
     if outcome1 == outcome2:
         query = {"_id": ctx.author.id}
         players.update_one(query, {"$inc": {"money": 100}})
-        await ctx.send("...and won $100!")
+        await ctx.send("...and Won $100!")
     elif outcome1 != outcome2:
         await ctx.send("...and Lost!")
 

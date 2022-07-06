@@ -9,10 +9,10 @@ class checkMoneyCog(commands.Cog):
     @commands.command("checkMoney")
     async def checkMoney(self, ctx, member: discord.Member):
         memberidInt = int(member.id)
-        playerValidation = validatePlayer(memberidInt)
+        isPlayerValid = validatePlayer(memberidInt)
 
-        if playerValidation == False: await ctx.send('That person is not in the Database yet! Have them register using &addPlayer.')
-        elif playerValidation == True: await ctx.send(getMoneyAmount(ctx, member.id))
+        if isPlayerValid == False: await ctx.send('That person is not in the Database yet! Have them register using &addPlayer.')
+        elif isPlayerValid == True: await ctx.send(getMoneyAmount(ctx, member.id))
 
 def setup(client):
     client.add_cog(checkMoneyCog(client))

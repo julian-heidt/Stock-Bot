@@ -12,43 +12,43 @@ def validateStock(stockName):
 
 def validateStockOwned(playerID, stockName):
     """Validates the Stock determining if it is owned or not"""
-    try:
-        query = {"_id": playerID}
-        playerData = players.find_one(query)
-        stocks = playerData['stocks_invested']
-        for stock in stocks:
-            stockKey = stock[stockName]
-            if stockKey >= 1: return True
-    except KeyError:
-        return False
+    query = {"_id": playerID}
+    playerData = players.find_one(query)
+    stocks = playerData['stocks_invested']
+    for stock in stocks:
+        stockKey = stock[stockName]
+        stockKeyInt = int(stockKey)
+        return bool(stockKeyInt >= 1)
+    return bool(False)
+
 
 async def investMoney(ctx, stockName, amount):
     """Gets rid of your money via purchasing a Stock"""
+    idInt = int(ctx.author.id)
     stockQuery = {"name": stockName}
     stock = stocks.find_one(stockQuery)
     stockPrice = stock["value"]
-    query = {"_id": ctx.author.id}
+    query = {"_id": idInt}
     player = players.find_one(query)
     playerMoney = player["money"]
     totalPrice = int(amount) * stockPrice
-    idInt = ctx.author.id
-    idStr = str(ctx.author.id)
-
+    isStockOwned = validateStockOwned(idInt, stockName)
     if playerMoney < totalPrice:
         await ctx.send(f"You don't have enough money to invest into {stockName}!")
     elif playerMoney >= totalPrice:
-        if validateStockOwned(idInt, stockName) == True:
+        if isStockOwned == True:
             players.update_one(query, {"$inc":{"stocks_invested": {stockName: amount}}})
             players.update_one(query, {"$inc":{"money": -totalPrice}})
-            stocks.update_one(stockQuery, {"$inc": {"players_invested": {idStr: amount}}})
+            stocks.update_one(stockQuery, {"$inc": {"players_invested": idInt}})
             stocks.update_one(stockQuery, {"$set": {"value": recalculateValue(stockName, False)}})
             await ctx.send(f"You have successfully bought {stockName}!")
-        elif validateStockOwned(idInt, stockName) == False:
+        elif isStockOwned == False:
             players.update_one(query, {"$push":{"stocks_invested": {stockName: amount}}})
             players.update_one(query, {"$inc":{"money": -totalPrice}})
-            stocks.update_one(stockQuery, {"$push": {"players_invested": {idStr: amount}}})
+            stocks.update_one(stockQuery, {"$push": {"players_invested": idInt}})
             stocks.update_one(stockQuery, {"$set": {"value": recalculateValue(stockName, False)}})
             await ctx.send(f"You have successfully bought {stockName}!")
+        elif isStockOwned == None: await ctx.send("Somein Broke!")
 
 async def getStockEmbed(ctx):
     """Gets Stock Embed created for &getStocks command"""

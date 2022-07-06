@@ -8,10 +8,12 @@ class addStockCog(commands.Cog):
 
     @commands.command("addStock")
     async def addStock(self, ctx, arg1, arg2):
-        stockValidation = validateStock(arg1)
-        if stockValidation == True: await ctx.send(f'Sorry, but {arg1} is already existing.')
-        elif stockValidation == False:
+        isStockValid = validateStock(arg1)
+
+        if isStockValid == True: await ctx.send(f'Sorry, but {arg1} is already existing.')
+        elif isStockValid == False:
             stockSetup(arg1, arg2)
             await ctx.send(f'{arg1} has successfully been added!')
+
 def setup(client):
     client.add_cog(addStockCog(client))
