@@ -1,8 +1,13 @@
 [
   {
-    "name": "Julio04",
+    "name": "King Julian",
     "id": 454730426586497025,
-    "money": 200.00,
-    "stockInvested": []
+    "money": -2300.0,
+    "stockInvested": [
+      "This is Hard",
+      "This is Hard",
+      "This is Hard",
+      "This is Hard"
+    ]
   }
 ]
