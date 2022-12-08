@@ -1,13 +1,8 @@
-from os import read
-from unicodedata import name
 import discord
-from discord import message, channel, reaction, user, emoji
 from discord.ext import commands, tasks
 from datetime import datetime
 import random
 import json
-
-from discord.ext.commands.core import check
 
 coolDown = False
 
@@ -16,8 +11,10 @@ coolDown = False
 #littleGremlinBoys = json.load(playersJSON)
 #To access things in a json file, it goes, the overall catagorey, then it's palce in the list, then the little object
 #Ex. stocks['Stocks'][0]['Anime Waifu Corp']
+intents = discord.Intents.default()
+intents.message_content = True
 
-client = commands.Bot(command_prefix='&')
+client = commands.Bot(command_prefix='&', intents=intents)
 
 class Player():
     def __init__(self, name, playerID, money):
@@ -73,6 +70,10 @@ class Stock():
 
         return f'You got {diviend()} amount of money!'
 
+
+@client.command()
+async def test(ctx):
+    await ctx.send("why won't this fucker work")
 
 @client.event
 async def on_ready():
@@ -232,4 +233,4 @@ async def backgroundTask():
         elif time != f'{stockChangeTimes[i]}:00'  and coolDown == True:
             coolDown = False
 
-client.run('Nzc5ODg2NjYzMjE1MjE4NzIx.X7nEDg.EMwdlXZp43B_xR7q7plR5C3r0Uc')
+client.run('Nzc5ODg2NjYzMjE1MjE4NzIx.GF710a.MKUqM_NrLSBvsQzhg272mEcNHSytTCNJJtpAtc')
