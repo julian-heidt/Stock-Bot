@@ -233,4 +233,4 @@ async def backgroundTask():
         elif time != f'{stockChangeTimes[i]}:00'  and coolDown == True:
             coolDown = False
 
-client.run('Nzc5ODg2NjYzMjE1MjE4NzIx.GF710a.MKUqM_NrLSBvsQzhg272mEcNHSytTCNJJtpAtc')
+client.run('put your own damn key here')
